@@ -10,8 +10,10 @@ const createNote = async(req, res) => {
     }
 
     const user = await User.findById(userId);
-    res.status(404).json({ message: "User not found" });
-
+    if(!user){
+      return res.status(404).json({ message: "User not found" });
+    }
+    
     const note = await Note.create({ title, content, user: userId });
     res.status(201).json({ message: "Note created successfully", note });
   } catch(err){
@@ -19,4 +21,54 @@ const createNote = async(req, res) => {
   }
 }
 
-module.exports = createNote;
+const getnotes = async(req, res) => {
+  try{
+    const notes = await Note.find({ archieved: false })
+    res.status(200).json(notes);
+  } catch(err){
+    res.status(500).json({ message:err.message })
+  }
+}
+
+const getNotebyId = async(req, res) => {
+  try{
+    const notes = await Note.findById(req.param.id);
+    if(!notes){
+      return res.status(500).json({ message: "Notes not found" });
+    }
+    res.status(200).json(notes);
+  } catch(err){
+    res.status(500).json({ message: err.message });
+  }
+}
+
+const updateNote = async(req, res) => {
+  try{
+    const note = await Note.findByIdAndUpdate(req.params.id, req.body, { returnDocument: "after" })
+
+    if(!note){
+      return res.status(500).json({ message: "Notes not found" })
+    }
+
+    res.status(200).json({ message: "Notes Updated Successfully",note})
+
+  } catch(err){
+    res.status(500).json({ message: err.message})
+  }
+}
+
+const archiveNote = async(req, res) => {
+  try{
+    const note = await Note.findByIdAndUpdate(req.params.id, {archieved: true}, {returnDocument: "after"})
+
+    if(!note){
+      return res.status(404).json({ message: "Notes not found"});
+    }
+
+    res.status(200).json({message: "Notes archived successfully",note});
+  } catch(err){
+    res.status(500).json({ message: err.message})
+  }
+}
+
+module.exports = { createNote, getnotes, getNotebyId, updateNote, archiveNote};
