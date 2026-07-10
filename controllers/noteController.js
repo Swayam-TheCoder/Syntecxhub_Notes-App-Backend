@@ -17,7 +17,7 @@ const createNote = async(req, res) => {
     const note = await Note.create({ title, content, user: userId });
     res.status(201).json({ message: "Note created successfully", note });
   } catch(err){
-    res.status(400).json(err.message);
+    res.status(500).json({message: err.message});
   }
 }
 
@@ -32,9 +32,9 @@ const getnotes = async(req, res) => {
 
 const getNotebyId = async(req, res) => {
   try{
-    const notes = await Note.findById(req.param.id).populate("user", "name email");
+    const notes = await Note.findById(req.params.id).populate("user", "name email");
     if(!notes){
-      return res.status(500).json({ message: "Notes not found" });
+      return res.status(404).json({ message: "Notes not found" });
     }
     res.status(200).json(notes);
   } catch(err){
@@ -47,7 +47,7 @@ const updateNote = async(req, res) => {
     const note = await Note.findByIdAndUpdate(req.params.id, req.body, { returnDocument: "after" })
 
     if(!note){
-      return res.status(500).json({ message: "Notes not found" })
+      return res.status(404).json({ message: "Notes not found" })
     }
 
     res.status(200).json({ message: "Notes Updated Successfully",note})
@@ -73,11 +73,26 @@ const archiveNote = async(req, res) => {
 
 const getUserNotes = async(req, res) => {
   try{
-    const notes = await Note.find({ user: req.params.userId, archived: false})
+    const notes = await Note.find({ user: req.params.userId, archieved: false})
     res.status(200).json(notes);
   } catch(err){
-    res.status(500).json({message: error.message});
+    res.status(500).json({message: err.message});
   }
 }
 
-module.exports = { createNote, getnotes, getNotebyId, updateNote, archiveNote, getUserNotes};
+const getUserWithNotes = async(req, res) => {
+  try{
+    const user = await User.findById(req.params.id).populate("notes");;
+    if (!user) {
+      return res.status(404).json({ message: "User not found"});
+    }
+
+    res.status(200).json(user);
+  }
+  catch(err){
+    res.status(500).json({ message: err.message});
+  }
+}
+
+
+module.exports = { createNote, getnotes, getNotebyId, updateNote, archiveNote, getUserNotes, getUserWithNotes};
