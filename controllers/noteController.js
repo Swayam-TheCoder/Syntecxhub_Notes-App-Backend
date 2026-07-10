@@ -23,7 +23,7 @@ const createNote = async(req, res) => {
 
 const getnotes = async(req, res) => {
   try{
-    const notes = await Note.find({ archieved: false })
+    const notes = await Note.find({ archieved: false }).populate("user", "name email")
     res.status(200).json(notes);
   } catch(err){
     res.status(500).json({ message:err.message })
@@ -32,7 +32,7 @@ const getnotes = async(req, res) => {
 
 const getNotebyId = async(req, res) => {
   try{
-    const notes = await Note.findById(req.param.id);
+    const notes = await Note.findById(req.param.id).populate("user", "name email");
     if(!notes){
       return res.status(500).json({ message: "Notes not found" });
     }
@@ -71,4 +71,13 @@ const archiveNote = async(req, res) => {
   }
 }
 
-module.exports = { createNote, getnotes, getNotebyId, updateNote, archiveNote};
+const getUserNotes = async(req, res) => {
+  try{
+    const notes = await Note.find({ user: req.params.userId, archived: false})
+    res.status(200).json(notes);
+  } catch(err){
+    res.status(500).json({message: error.message});
+  }
+}
+
+module.exports = { createNote, getnotes, getNotebyId, updateNote, archiveNote, getUserNotes};
